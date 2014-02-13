@@ -1,7 +1,9 @@
 module Jekyll
   class GalleryGenerator < Generator
-    attr_accessor :site, :gallery_dir, :gallery_layout
+    attr_accessor :site, :gallery_dir, :gallery_layout, :galleries
     class << self; attr_accessor :site; end
+
+    CONFIG_GALLERIES_ATTR = 'galleries'
 
     def generate(site)
       self.class.site = self.site = site
@@ -10,6 +12,8 @@ module Jekyll
 
       # array of GalleryPage objects
       site.data['galleries'] = []
+
+      # site.galleries = []
       gallery_dirs = Dir["#{site.source}/#{gallery_dir}/*/"].select { |e| File.directory? e }
       gallery_dirs.reverse! # sort by date desc
       gallery_dirs.each do |dir|
@@ -22,6 +26,7 @@ module Jekyll
       data = { 'layout' => gallery_layout }
 
       page = GalleryPage.new(site, site.source, self.gallery_dir, gallery_dir, data)
+
       site.pages << page
 
       site.data['galleries'] << page
@@ -32,19 +37,29 @@ module Jekyll
   class GalleryPage < Page
     # Valid post name regex.
     MATCHER = /^(\d+-\d+-\d+)-(.*)$/
+    CONFIG_GALLERIES_ATTR = 'galleries'
 
-    attr_accessor :site, :url, :name, :slug
+    attr_accessor :site, :url, :name, :slug, :date
 
     def initialize(site, base, gen_dir, dir, data={})
       self.content = data.delete('content') || ''
       self.data = data
 
-      super(site, base, gen_dir, File.basename(dir) )
+      dir_name = File.basename dir
+      super(site, base, gen_dir, dir_name )
 
       # url, photos
       self.url = "/#{gen_dir}/#{self.data['slug']}.html"
       self.data['url'] = URI.escape self.url
-      self.data['photo_urls'] = Dir["#{base}/#{gen_dir}/#{self.name}/*"].map { |e| URI.escape("/#{gen_dir}/#{self.name}/#{File.basename e}") }
+      self.data['photo_urls'] = Dir["#{base}/#{gen_dir}/#{dir_name}/*"].map { |e| URI.escape("/#{gen_dir}/#{dir_name}/#{File.basename e}") }
+
+      if site.config[CONFIG_GALLERIES_ATTR]
+        attr = site.config[CONFIG_GALLERIES_ATTR].find { |e| e['title'] == self.name}
+        if attr
+          attr.each { |k, v| self.data[k] = v }
+        end
+        # self.data['excerpt'] = attr['excerpt'] if attr
+      end
     end
 
     def read_yaml(*)
@@ -59,9 +74,9 @@ module Jekyll
       m, date, name = *name.match(MATCHER)
 
       # self.data['date'] = Time.parse(date)
-      self.data['date'] = date
-      self.data['name'] = name
-      self.data['slug'] = name
+      self.data['date'] = self.date = date
+      self.data['name'] = self.name = name
+      self.data['slug'] = self.slug = name.gsub(/[^0-9a-z ]/i, '').downcase.gsub(/ /, '-')
     rescue ArgumentError
       raise FatalException.new("Gallery #{name} does not have a valid date.")
     end
