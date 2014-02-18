@@ -4,6 +4,13 @@ By allenlsy <mailto:cafe@allenlsy>
 
 Jekyll-galleries is a Jekyll plugin used for generating photo galleries from image folders.
 
+Features:
+
+* Automatically generate galleries from <tt>galleries</tt> folder
+* Load galleries and photos configuration from YAML file
+
+
+
 <tt>_config.yml</tt>:
 
   gallery_dir: galleries
