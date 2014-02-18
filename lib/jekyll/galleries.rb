@@ -39,26 +39,37 @@ module Jekyll
     MATCHER = /^(\d+-\d+-\d+)-(.*)$/
     CONFIG_GALLERIES_ATTR = 'galleries'
 
-    attr_accessor :site, :url, :name, :slug, :date
+    attr_accessor :url, :name, :slug, :date
 
     def initialize(site, base, gen_dir, dir, data={})
       self.content = data.delete('content') || ''
       self.data = data
 
       dir_name = File.basename dir
-      super(site, base, gen_dir, dir_name )
+      super(site, base, gen_dir, dir_name)
+
+      # photo configuration
+      photos_config_filepath =  "#{base}/#{site.config['gallery_dir']}/#{self.data['name']}.yml"
+      photos_config = YAML.load(File.open(photos_config_filepath).read) if File.exists?(photos_config_filepath)
 
       # url, photos
       self.url = "/#{gen_dir}/#{self.data['slug']}.html"
       self.data['url'] = URI.escape self.url
-      self.data['photo_urls'] = Dir["#{base}/#{gen_dir}/#{dir_name}/*"].map { |e| URI.escape("/#{gen_dir}/#{dir_name}/#{File.basename e}") }
+      photos = Dir["#{base}/#{gen_dir}/#{dir_name}/*"].map { |e| { filename: File.basename(e), url: URI.escape("/#{gen_dir}/#{dir_name}/#{File.basename e}") } }
+      self.data['photos'] = []
+      photos.each do |photo|
+        photo_data = {}
+        photo_data = photos_config.find { |e| e['filename'] == photo[:filename] } if photos_config
 
+        self.data['photos'] << Photo.new(photo[:filename], photo[:url], photo_data)
+      end
+
+      # gallery page attributes
       if site.config[CONFIG_GALLERIES_ATTR]
         attr = site.config[CONFIG_GALLERIES_ATTR].find { |e| e['title'] == self.name}
         if attr
           attr.each { |k, v| self.data[k] = v }
         end
-        # self.data['excerpt'] = attr['excerpt'] if attr
       end
     end
 
@@ -79,6 +90,21 @@ module Jekyll
       self.data['slug'] = self.slug = name.gsub(/[^0-9a-z ]/i, '').downcase.gsub(/ /, '-')
     rescue ArgumentError
       raise FatalException.new("Gallery #{name} does not have a valid date.")
+    end
+  end
+
+  class Photo
+    attr_accessor :filename, :url, :data
+
+    def initialize(filename, url, options=nil)
+      self.filename = filename
+      self.url = url
+
+      self.data = options || {}
+    end
+
+    def to_liquid
+      self.data.merge({ 'url' => self.url })
     end
   end
 
