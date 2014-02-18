@@ -13,9 +13,8 @@ module Jekyll
       # array of GalleryPage objects
       site.data['galleries'] = []
 
-      # site.galleries = []
       gallery_dirs = Dir["#{site.source}/#{gallery_dir}/*/"].select { |e| File.directory? e }
-      gallery_dirs.reverse! # sort by date desc
+      gallery_dirs.reverse! # in order to sort by date desc
       gallery_dirs.each do |dir|
         generate_gallery_page(dir)
       end
@@ -41,30 +40,32 @@ module Jekyll
 
     attr_accessor :url, :name, :slug, :date
 
-    def initialize(site, base, gen_dir, dir, data={})
+    def initialize(site, base, gen_dir, gallery_dir, data={})
       self.content = data.delete('content') || ''
       self.data = data
 
-      dir_name = File.basename dir
-      super(site, base, gen_dir, dir_name)
+      gallery_dir_name = File.basename gallery_dir
+      super(site, base, gen_dir, gallery_dir_name)
 
-      # photo configuration
+      # load photos configuration
       photos_config_filepath =  "#{base}/#{site.config['gallery_dir']}/#{self.data['name']}.yml"
       photos_config = YAML.load(File.open(photos_config_filepath).read) if File.exists?(photos_config_filepath)
 
-      # url, photos
-      self.url = "/#{gen_dir}/#{self.data['slug']}.html"
-      self.data['url'] = URI.escape self.url
-      photos = Dir["#{base}/#{gen_dir}/#{dir_name}/*"].map { |e| { filename: File.basename(e), url: URI.escape("/#{gen_dir}/#{dir_name}/#{File.basename e}") } }
-      self.data['photos'] = []
+      # generating photos
+      self.url = "/#{gen_dir}/#{self.data['slug']}.html" # gallery page url
+      self.data['url'] = URI.escape self.url 
+
+      # For each photo, initial attributes are `filename` and `url`
+      photos = Dir["#{gallery_dir}/*"].map { |e| { filename: File.basename(e), url: URI.escape("/#{gen_dir}/#{gallery_dir_name}/#{File.basename e}") } } # basic photos attributes
+
+      self.data['photos'] = [] # storing an array of Photo
       photos.each do |photo|
         photo_data = {}
         photo_data = photos_config.find { |e| e['filename'] == photo[:filename] } if photos_config
-
         self.data['photos'] << Photo.new(photo[:filename], photo[:url], photo_data)
       end
 
-      # gallery page attributes
+      # gallery page configuration
       if site.config[CONFIG_GALLERIES_ATTR]
         attr = site.config[CONFIG_GALLERIES_ATTR].find { |e| e['title'] == self.name}
         if attr
@@ -99,7 +100,6 @@ module Jekyll
     def initialize(filename, url, options=nil)
       self.filename = filename
       self.url = url
-
       self.data = options || {}
     end
 
@@ -128,4 +128,3 @@ module Jekyll
 end
 
 Liquid::Template.register_tag('yaml_to_liquid', Jekyll::YamlToLiquid)
-
