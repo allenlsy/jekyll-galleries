@@ -3,8 +3,6 @@ module Jekyll
     attr_accessor :site, :gallery_dir, :gallery_layout, :galleries
     class << self; attr_accessor :site; end
 
-    CONFIG_GALLERIES_ATTR = 'galleries'
-
     def generate(site)
       self.class.site = self.site = site
       self.gallery_dir = site.config['gallery_dir'] || 'galleries'
