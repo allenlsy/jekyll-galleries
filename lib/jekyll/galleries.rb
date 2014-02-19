@@ -67,7 +67,7 @@ module Jekyll
 
       # gallery page configuration
       if site.config[CONFIG_GALLERIES_ATTR]
-        attr = site.config[CONFIG_GALLERIES_ATTR].find { |e| e['title'] == self.name}
+        attr = site.config[CONFIG_GALLERIES_ATTR].find { |e| e['name'] == self.name}
         if attr
           attr.each { |k, v| self.data[k] = v }
         end
