@@ -46,11 +46,11 @@ module Jekyll
       super(site, base, gen_dir, gallery_dir_name)
 
       # load photos configuration
-      photos_config_filepath =  "#{base}/#{site.config['gallery_dir']}/#{self.data['name']}.yml"
+      photos_config_filepath =  "#{base}/#{site.config['gallery_dir']}/#{self.date}-#{self.name}.yml"
       photos_config = YAML.load(File.open(photos_config_filepath).read) if File.exists?(photos_config_filepath)
 
       # generating photos
-      self.url = "/#{gen_dir}/#{self.data['slug']}.html" # gallery page url
+      self.url = "/#{gen_dir}/#{self.date}-#{self.slug}.html" # gallery page url
       self.data['url'] = URI.escape self.url 
 
       # For each photo, initial attributes are `filename` and `url`

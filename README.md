@@ -4,6 +4,12 @@ By [allenlsy](mailto:cafe@allenlsy.com)
 
 __Jekyll-galleries__ is a Jekyll plugin used for generating photo galleries from image folders.
 
+A demo to this plugin is on my [personal website](http://allenlsy.com/galleries.html).
+
+If you have any questions or any suggestions, I'm very pleased to hear from you. I need your support and ideas to make this plugin better.
+
+---
+
 ##### Features:
 
 * Automatically generate galleries from <tt>galleries</tt> folder
@@ -19,10 +25,9 @@ There are two main concept in this plugin:
 
 Here is an example on how to use this plugin.
 
-1. Setup the plugin
+##### 1. Setup the plugin
 
-Add `gem 'jekyll-galleries'` to the `Gemfile` in your jekyll project, and then run `bundle` command in shell to install it.
-
+Add `gem 'jekyll-galleries'` to the `Gemfile` in your jekyll project, and then run `bundle` command in shell to install it. Then add `require 'jekyll/galleries'` to `_plugins/_ext.rb`.
 
 There are three attributes which are optional. All of them should be put at the root level of `_config.yml`, if needed.
 
@@ -32,15 +37,15 @@ There are three attributes which are optional. All of them should be put at the 
 
 Check out the example `_config.yml` if you are still not clear.
 
-2. Add galleries to jekyll project
+##### 2. Add galleries to jekyll project
 
 By default, galleries are stored in the `galleries` folder in the jekyll project root path. If you want to change the storing path, you can customize the `gallery_dir` attribute it in `_config.yml` file.
 
 __Jekyll-galleries__ will recognize all the subfolders in `galleries` (or `gallery_dir` specified in `_config.yml`) with the format of `<yyyy-MM-dd>-<NAME>` as a valid gallery folder. Meanwhile it adds `date` (value `yyyy-MM-dd`) and `name` (value `NAME`) attributes to the gallery. In the `name` attributes, space and other characters are allowed. All the files in gallery folder will be loaded to the GalleryPage. So please ensure you have correct image file in the gallery folder.
 
-3. Adding attribute to images
+##### 3. Adding attribute to photos
 
-You can have a `.yml` file with the same name of the gallery folder, to define attributes of each image in that gallery. Only images with extra attributes are required in the yaml file. Each image is identified by the attribute `filename`. For example, if you have an gallery, whose folder name is `2014-01-23-At the beach`, then in a `2014-01-23-At the beach.yml` file, you can config images like this:
+You can have a `.yml` file with the same name of the gallery folder, to define attributes of each photo in that gallery. Only photos with extra attributes are required in the yaml file. Each photo is identified by the attribute `filename`. For example, if you have an gallery, whose folder name is `2014-01-23-At the beach`, then in a `2014-01-23-At the beach.yml` file, you can config photos like this:
 
     - filename: IMG_0075.JPG
       annotation: this is the allenllsy's jekyll-galleries
@@ -51,7 +56,7 @@ Then later you can use the attributes in your template, such as `annotation` in 
 
 Notice that attribute `filename` is required for any photos that as extra attributes.
 
-4. Adding attribute to gallery
+##### 4. Adding attribute to gallery
 
 Inside the optional `galleries` attribute in `_config.yml`, you can have objects, with attribute `name` the value equals to your gallery name (not containing the date). For example:
 
@@ -61,10 +66,18 @@ Inside the optional `galleries` attribute in `_config.yml`, you can have objects
 
 Then in the template, the gallery will have the attribute `subtitle` that can be rendered.
 
-5. Use attributes in template
+##### 5. Use attributes in template
 
+Now, the `site.data['galleries']` global variable contains all the gallery pages. It is an array of `GalleryPage` objects. Each `GalleryPage` object has at least three attributes: `name`, `date` and `url`. `url` is URL escaped. You can use them in your galleries index page.
 
-### Full example
+In each gallery page, you have a `page` object. And `page.photos` is an array of `Photo` objects. An `Photo` object has at least `filename` and `url` two attributes. The `url` attribute is also URL escaped, so you don't need to worry about it.
+
+In the example below, you will see how to use attributes in template in more detail.
+
+### Example of Galleries Index page & Gallery page
+
+* Galleries Index page: the index page of all galleries
+* Gallery Page: the page display photos in that gallery
 
 Suppose in the Jekyll project root folder, my file structure is like below:
 
@@ -76,26 +89,13 @@ Suppose in the Jekyll project root folder, my file structure is like below:
     | -sing a song.jpg
     | -having dinner.jpg
 
-First I have add a `_layouts/gallery.html` as my gallery template. 
+##### Galleries index page template
+
+After installing and setting up the plugin, I add a galleries index file `galleries.html` in Jekyll root directory:
 
     ---
     layout: base
     ---
-
-    <p>
-    {{ page.photos }}
-    </p>
-    {% for photo in page.photos %}
-    <p>{{ photo.name }}</p>
-    {% endfor %}
-    <div id="galleria">
-      {{ page.photo_urls.length }}
-    </div>
-
-
-
-Sample layout for gallery index, which you can make a `galleries.html` in Jekyll root directory:
-
     {% for gallery in site.data['galleries'] %}
       <p>
         <a href="{{ gallery.url }}">{{ gallery.name }}</a>
@@ -103,16 +103,74 @@ Sample layout for gallery index, which you can make a `galleries.html` in Jekyll
       </p>
     {% endfor %}
 
-Sample layout for one gallery page, which normally you will put it as <tt>_layouts/gallery.html</tt>:
+If I want to also add other attributes, such as `excerpt` for some galleries, I can specifies them in `_config.yml`
+
+    galleries:
+      - name: At the beach
+        excerpt: Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat.
+
+Then I update the `galleries.html` page:
 
     ---
     layout: base
     ---
-    {% for photo_url in page.photos %}
-      <p>
-        <img src="{{ photo_url }}" />
-      </p>
+    {% for gallery in site.data['galleries'] %}
+      <div>
+        <a href="{{ gallery.url }}">{{ gallery.name }}</a>
+        <span>{{ gallery.date }}</span>
+        {% if gallery.excerpt %}
+        <p>
+          {{ gallery.excerpt }}
+        </p>
+        {% endif %}
+      </div>
     {% endfor %}
+
+The generated `galleries.html` should be like this:
+
+    <div>
+      <a href="/galleries/2014-02-01-chinese-new-year.html">Chinese New Year</a>
+      <span>2014-02-01</span>
+    </div>
+    <div>
+      <a href="/galleries/2014-01-23-at-the-beach.html">At the beach</a>
+      <span>2014-01-23</span>
+      <p>
+        Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat.
+      </p>
+    </div>
+
+
+##### Gallery page template
+
+Next, I add a `_layouts/gallery.html` file as my gallery template. This is the template for each single gallery
+
+    ---
+    layout: base
+    ---
+
+    {% for photo in page.photos %}
+      <img src="{{ photo.url }}" style="width:800px;"/>
+      {% if photo.info %}
+      <p>{{ photo.info }}</p>
+      {% endif %}
+      <hr >
+    {% endfor %}
+
+In this template, I take use of the extra attribute `info` of photo. This attribute can be configured in photos config file, eg. `galleries/2014-02-01-Chinese New Year`:
+
+    - filename: 'sing a song.jpg'
+      info: 'We are singing a song'
+
+The photos are identified using the `filename` attribute.
+
+After I run `jekyll build`, it should generate a file `_site/galleries/2014-02-01-chinese-new-year.html`. The content should be like:
+
+    <img src="/galleries/2014-02-02-Chinese%20New%20Year/IMG_0094.JPG" style="width:800px;"/>
+    <hr >
+    <img src="/galleries/2014-02-02-Chinese%20New%20Year/sing%20a%20song.jpg" style="width:800px;"/>
+    <p>We are singing a song</p>
+    <hr >
 
 ### License
 
