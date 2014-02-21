@@ -36,25 +36,36 @@ module Jekyll
     MATCHER = /^(\d+-\d+-\d+)-(.*)$/
     CONFIG_GALLERIES_ATTR = 'galleries'
 
-    attr_accessor :url, :name, :slug, :date
+    attr_accessor :url, :name, :slug, :date, :base
 
     def initialize(site, base, gen_dir, gallery_dir, data={})
+      # preparation
+      @base = base
+      @site = site
+      @gen_dir = gen_dir
+      @gallery_dir = gallery_dir
       self.content = data.delete('content') || ''
       self.data = data
 
-      gallery_dir_name = File.basename gallery_dir
-      super(site, base, gen_dir, gallery_dir_name)
+      @gallery_dir_name = File.basename gallery_dir
+      super(site, base, gen_dir, @gallery_dir_name)
 
-      # load photos configuration
-      photos_config_filepath =  "#{base}/#{site.config['gallery_dir']}/#{self.date}-#{self.name}.yml"
+      # ---
+      generate_photos
+
+    end
+
+    def generate_photos
+      photos_config_filepath =  "#{@base}/#{@site.config['gallery_dir']}/#{self.date}-#{self.name}.yml"
       photos_config = YAML.load(File.open(photos_config_filepath).read) if File.exists?(photos_config_filepath)
 
       # generating photos
-      self.url = "/#{gen_dir}/#{self.date}-#{self.slug}.html" # gallery page url
-      self.data['url'] = URI.escape self.url 
+
+      self.url = "/#{@gen_dir}/#{self.date}-#{self.slug}.html" # gallery page url
+      self.data['url'] = URI.escape self.url
 
       # For each photo, initial attributes are `filename` and `url`
-      photos = Dir["#{gallery_dir}/*"].map { |e| { filename: File.basename(e), url: URI.escape("/#{gen_dir}/#{gallery_dir_name}/#{File.basename e}") } } # basic photos attributes
+      photos = Dir["#{@gallery_dir}/*"].map { |e| { filename: File.basename(e), url: URI.escape("/#{@gen_dir}/#{@gallery_dir_name}/#{File.basename e}") } } # basic photos attributes
 
       self.data['photos'] = [] # storing an array of Photo
       photos.each do |photo|
@@ -64,12 +75,13 @@ module Jekyll
       end
 
       # gallery page configuration
-      if site.config[CONFIG_GALLERIES_ATTR]
-        attr = site.config[CONFIG_GALLERIES_ATTR].find { |e| e['name'] == self.name}
+      if @site.config[CONFIG_GALLERIES_ATTR]
+        attr = @site.config[CONFIG_GALLERIES_ATTR].find { |e| e['name'] == self.name }
         if attr
           attr.each { |k, v| self.data[k] = v }
         end
       end
+
     end
 
     def read_yaml(*)
