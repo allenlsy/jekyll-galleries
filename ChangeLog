@@ -1,3 +1,7 @@
+== 0.7.5 [2014-03-05]
+
+* Add `top` as an attribute, for putting an gallery on the top of index page
+
 == 0.7.2 [2014-02-20]
 
 * Add full documentation

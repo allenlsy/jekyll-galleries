@@ -66,6 +66,13 @@ Inside the optional `galleries` attribute in `_config.yml`, you can have objects
 
 Then in the template, the gallery will have the attribute `subtitle` that can be rendered.
 
+Another attribute is `top`. If you set `top: true` for a gallery, then this gallery will always be put on top of the galleries index page. For example:
+
+    galleries:
+      - name: Sample Gallery
+        subtitle: This is a sample gallery
+        top: true
+
 ##### 5. Use attributes in template
 
 Now, the `site.data['galleries']` global variable contains all the gallery pages. It is an array of `GalleryPage` objects. Each `GalleryPage` object has at least three attributes: `name`, `date` and `url`. `url` is URL escaped. You can use them in your galleries index page.

@@ -1,12 +1,14 @@
 module Jekyll
   class GalleryGenerator < Generator
-    attr_accessor :site, :gallery_dir, :gallery_layout, :galleries
+    attr_accessor :site, :gallery_dir, :gallery_layout, :galleries, :gallery_pages, :top_gallery_pages
     class << self; attr_accessor :site; end
 
     def generate(site)
       self.class.site = self.site = site
       self.gallery_dir = site.config['gallery_dir'] || 'galleries'
       self.gallery_layout = site.config['gallery_layout'] || 'gallery'
+      self.gallery_pages = []
+      self.top_gallery_pages = []
 
       # array of GalleryPage objects
       site.data['galleries'] = []
@@ -16,6 +18,10 @@ module Jekyll
       gallery_dirs.each do |dir|
         generate_gallery_page(dir)
       end
+
+      site.pages << self.top_gallery_pages
+      site.pages << self.gallery_pages.reverse!
+      site.pages.flatten!
     end
 
     private
@@ -24,7 +30,15 @@ module Jekyll
 
       page = GalleryPage.new(site, site.source, self.gallery_dir, gallery_dir, data)
 
-      site.pages << page
+      if page.top?
+        p page.name
+        p page.top?
+        top_gallery_pages << page
+      else
+        p page.name
+        p page.top?
+        gallery_pages << page
+      end
 
       site.data['galleries'] << page
     end
@@ -81,7 +95,10 @@ module Jekyll
           attr.each { |k, v| self.data[k] = v }
         end
       end
+    end
 
+    def top?
+      self.data['top'] and self.data['top'] == true
     end
 
     def read_yaml(*)
