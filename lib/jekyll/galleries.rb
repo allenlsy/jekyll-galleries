@@ -19,9 +19,16 @@ module Jekyll
         generate_gallery_page(dir)
       end
 
+      # ordering the Page generation
       site.pages << self.top_gallery_pages
-      site.pages << self.gallery_pages.reverse!
+      site.pages << self.gallery_pages
       site.pages.flatten!
+
+      # ordering galleries on gallery index page
+      site.data['galleries'] << self.top_gallery_pages
+      site.data['galleries'] << self.gallery_pages.reverse!
+      site.data['galleries'].flatten!
+
     end
 
     private
@@ -30,17 +37,8 @@ module Jekyll
 
       page = GalleryPage.new(site, site.source, self.gallery_dir, gallery_dir, data)
 
-      if page.top?
-        p page.name
-        p page.top?
-        top_gallery_pages << page
-      else
-        p page.name
-        p page.top?
-        gallery_pages << page
-      end
-
-      site.data['galleries'] << page
+      pages_queue = page.top? ? top_gallery_pages : gallery_pages
+      pages_queue << page
     end
 
   end
