@@ -5,7 +5,13 @@ include FileUtils
 
 module Jekyll
   class GalleryGenerator < Generator
-    attr_accessor :site, :gallery_dir, :gallery_layout, :galleries, :gallery_pages, :top_gallery_pages
+    attr_accessor :site
+    attr_accessor :gallery_dir # directory for storing galleries. Default value is `galleries`
+    attr_accessor :gallery_layout # layout file for gallery. Default value is `gallery`
+    attr_accessor :galleries
+    attr_accessor :gallery_pages
+    attr_accessor :top_gallery_pages # GalleryPage array of topped galleries
+
     class << self; attr_accessor :site; end
 
     def generate(site)
@@ -42,10 +48,9 @@ module Jekyll
 
       page = GalleryPage.new(site, site.source, self.gallery_dir, gallery_dir, data)
 
-      pages_queue = page.top? ? top_gallery_pages : gallery_pages
+      pages_queue = page.top? ? top_gallery_pages : gallery_pages # decide the queue that current page should be put into
       pages_queue << page
     end
-
   end
 
   class GalleryPage < Page
@@ -53,14 +58,17 @@ module Jekyll
     MATCHER = /^(\d+-\d+-\d+)-(.*)$/
     CONFIG_GALLERIES_ATTR = 'galleries'
     attr_accessor :url, :name, :slug, :date, :base
-    attr_accessor :gen_dir, :gallery_dir, :gallery_dir_name, :thumbs_dir
+    attr_accessor :gen_dir # path that this gallery will be generated into
+    attr_accessor :gallery_dir # the original path of the this gallery on local
+    attr_accessor :gallery_dir_name # the name of this gallery dir
+    attr_accessor :thumbs_dir # path of thumbnails dir
 
     def initialize(site, base, gen_dir, gallery_dir, data={})
       # preparation
       @base = base
       @site = site
-      self.gen_dir = gen_dir # the dir that this gallery will be generated into
-      self.gallery_dir = gallery_dir # the original path of the gallery on local
+      self.gen_dir = gen_dir
+      self.gallery_dir = gallery_dir
       self.content = data.delete('content') || ''
       self.data = data
       self.thumbs_dir = site.config['thumbs_dir']
@@ -70,17 +78,15 @@ module Jekyll
 
       # ---
       generate_photos
-      # generate_thumbnails
 
     end
 
     def generate_photos
       photos_config_filepath =  "#{@base}/#{@site.config['gallery_dir']}/#{self.date}-#{self.name}.yml"
-      photos_config = YAML.load(File.open(photos_config_filepath).read) if File.exists?(photos_config_filepath)
+      photos_config = YAML.load(File.open(photos_config_filepath).read) if File.exists?(photos_config_filepath) # config of this gallery
 
       # generating photos
-
-      self.url = "/#{self.gen_dir}/#{self.date}-#{self.slug}.html" # gallery page url
+      self.url = "/#{self.gen_dir}/#{self.gallery_dir_name}/index.html" # gallery page url
       self.data['url'] = URI.escape self.url
 
       # For each photo, initial attributes are `filename` and `url`
@@ -91,7 +97,6 @@ module Jekyll
         photo_data = {}
         photo_data = photos_config.find { |e| e['filename'] == photo[:filename] } if photos_config
 
-        # self.data['photos'] << Photo.new(photo[:filename], photo[:url], photo_data)
         self.data['photos'] << Photo.new(@site, photo[:filename], self, photo_data)
       end
 
@@ -154,14 +159,14 @@ module Jekyll
       size_x = @site.config['thumbnail_x'] || 100
       size_y = @site.config['thumbnail_y'] || 100
 
-      FileUtils.mkdir_p("#{@thumbs_dir}/#{@gallery.gallery_dir_name}", :mode => 0755)
-      if File.file?("#{@thumbs_dir}/#{@gallery.gallery_dir_name}/#{self.filename}") == false or File.mtime("#{@gallery.gallery_dir}/#{self.filename}") > File.mtime("#{@thumbs_dir}/#{@gallery.gallery_dir_name}/#{self.filename}")
+      full_thumbs_path = "#{@site.dest}/#{@thumbs_dir}/#{@gallery.gallery_dir_name}"
+      FileUtils.mkdir_p(full_thumbs_path, :mode => 0755)
+      if File.file?("#{full_thumbs_path}/#{self.filename}") == false or File.mtime("#{@gallery.gallery_dir}/#{self.filename}") > File.mtime("#{full_thumbs_path}/#{self.filename}")
         begin
           m_image = ImageList.new("#{@gallery.gallery_dir}/#{self.filename}")
           m_image.send("resize_to_fit!", size_x, size_y)
-          # puts "Writing thumbnail to #{@thumbs_dir}/#{@gallery.gallery_dir_name}/#{self.filename}"
-          m_image.write("#{@thumbs_dir}/#{@gallery.gallery_dir_name}/#{self.filename}")
-          p self
+          puts "Writing thumbnail to #{full_thumbs_path}/#{self.filename}"
+          m_image.write("#{full_thumbs_path}/#{self.filename}")
         rescue
           puts "error"
           puts $!

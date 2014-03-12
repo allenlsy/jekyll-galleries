@@ -27,15 +27,15 @@ Here is an example on how to use this plugin.
 
 ##### 1. Setup the plugin
 
-Add `gem 'jekyll-galleries'` to the `Gemfile` in your jekyll project, and then run `bundle` command in shell to install it. Then add `require 'jekyll/galleries'` to `_plugins/_ext.rb`.
+Add `gem 'jekyll-galleries'` to the `Gemfile` in your jekyll project, and also the depedencies `rmagick`. Then run `bundle` command in shell to install them. Next add `require 'jekyll/galleries'` to `_plugins/_ext.rb`.
 
-There are three attributes which are optional. All of them should be put at the root level of `_config.yml`, if needed.
+There are three attributes which are optional. All of them should be put into the `_config.yml`, if needed.
 
 * `galleries` specifies the extra information of each gallery, using the YAML object format.
 * `gallery_dir` defines which folder in jekyll project stores the all the galleries. Default value is `galleries` if not defined.
 * `gallery_layout` defines the layout __Jekyll-galleries__ will use to render each single gallery. Default value is `gallery`, which uses the `_layouts/gallery.html` as the template.
 
-Check out the example `_config.yml` if you are still not clear.
+Check out the example `_config.yml` down below if you are still not clear.
 
 ##### 2. Add galleries to jekyll project
 
