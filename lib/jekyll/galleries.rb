@@ -1,6 +1,6 @@
 require 'RMagick'
+require 'exifr'
 include Magick
-
 include FileUtils
 
 module Jekyll
@@ -90,12 +90,13 @@ module Jekyll
       self.data['url'] = URI.escape self.url
 
       # For each photo, initial attributes are `filename` and `url`
-      photos = Dir["#{self.gallery_dir}/*"].map { |e| { filename: File.basename(e), url: URI.escape("/#{self.gen_dir}/#{self.gallery_dir_name}/#{File.basename e}") } } # basic photos attributes
+      photos = Dir["#{self.gallery_dir}/*"].map { |e| { file: File.new(e), filename: File.basename(e), url: URI.escape("/#{self.gen_dir}/#{self.gallery_dir_name}/#{File.basename e}") } } # basic photos attributes
 
       self.data['photos'] = [] # storing an array of Photo
       photos.each do |photo|
-        photo_data = {}
         photo_data = photos_config.find { |e| e['filename'] == photo[:filename] } if photos_config
+        photo_data ||= {}
+        photo_data['date'] = EXIFR::JPEG.new(photo[:file].path).date_time.strftime("%F %R")
 
         self.data['photos'] << Photo.new(@site, photo[:filename], self, photo_data)
       end
@@ -144,7 +145,6 @@ module Jekyll
       self.data['url'] = URI.escape("/#{gallery.gen_dir}/#{gallery.gallery_dir_name}/#{filename}")
       self.data['filename'] = filename
       self.filename = filename
-
 
       @thumbs_dir = site.config['thumbnails_dir']
       generate_thumbnails if @thumbs_dir
