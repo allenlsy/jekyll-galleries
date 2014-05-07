@@ -1,3 +1,7 @@
+== 0.8.2 [2014-05-07]
+
+* Add gallery cover thumbnail
+
 == 0.8.1 [2014-05-07]
 
 * Fixed bug: thumbnail generation not working

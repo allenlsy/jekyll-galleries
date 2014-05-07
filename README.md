@@ -66,12 +66,18 @@ Inside the optional `galleries` attribute in `_config.yml`, you can have objects
 
 Then in the template, the gallery will have the attribute `subtitle` that can be rendered.
 
+###### `top` attribute
+
 Another attribute is `top`. If you set `top: true` for a gallery, then this gallery will always be put on top of the galleries index page. For example:
 
     galleries:
       - name: Sample Gallery
         subtitle: This is a sample gallery
         top: true
+
+###### `thumbnail` attribute
+
+`thumbnail` is a special optional attribute. If you want to add a gallery cover thumbnail to galleries index page, you need to specify the thumbnail file name (not path).
 
 ##### 5. Use attributes in template
 

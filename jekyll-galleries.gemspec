@@ -1,6 +1,6 @@
 Gem::Specification.new do |s|
   s.name        = 'jekyll-galleries'
-  s.version     = '0.8.1'
+  s.version     = '0.8.2'
   s.date        = '2014-05-07'
   s.summary     = "Galleries"
   s.description = "Jekyll plugin to automatically generate photo gallery (album) from image folder."

@@ -70,7 +70,7 @@ module Jekyll
       self.gallery_dir = gallery_dir
       self.content = data.delete('content') || ''
       self.data = data
-      self.thumbs_dir = site.config['thumbs_dir']
+      self.thumbs_dir = site.config['thumbnails_dir']
 
       self.gallery_dir_name = File.basename gallery_dir
       super(site, base, gen_dir, self.gallery_dir_name)
@@ -81,17 +81,12 @@ module Jekyll
     end
 
     def generate_photos
-      photos_config_filepath =  "#{@base}/#{@site.config['gallery_dir']}/#{self.date}-#{self.name}.yml"
+      photos_config_filepath = "#{@base}/#{@site.config['gallery_dir']}/#{self.date}-#{self.name}.yml"
       photos_config = YAML.load(File.open(photos_config_filepath).read) if File.exists?(photos_config_filepath) # config of this gallery
 
       # generating photos
       self.url = "/#{self.gen_dir}/#{self.gallery_dir_name}/index.html" # gallery page url
       self.data['url'] = URI.escape self.url
-
-      # generating gallery cover thumbnail
-      if self.data['thumbnail']
-        self.data['thumbnail'] = URI.escape("/#{self.gen_dir}/#{self.gallery_dir_name}/#{self.data['thumbnail']}")
-      end
 
       # For each photo, initial attributes are `filename` and `url`
       photos = Dir["#{self.gallery_dir}/*"].map { |e| { file: File.new(e), filename: File.basename(e), url: URI.escape("/#{self.gen_dir}/#{self.gallery_dir_name}/#{File.basename e}") } } # basic photos attributes
@@ -115,6 +110,11 @@ module Jekyll
         if attr
           attr.each { |k, v| self.data[k] = v }
         end
+      end
+
+      # generating gallery cover thumbnail
+      if self.data['thumbnail']
+        self.data['thumbnail'] = URI.escape("/#{self.gen_dir}/#{self.gallery_dir_name}/#{self.data['thumbnail']}")
       end
     end
 
