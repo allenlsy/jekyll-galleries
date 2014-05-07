@@ -25,7 +25,6 @@ module Jekyll
       site.data['galleries'] = []
 
       gallery_dirs = Dir["#{site.source}/#{gallery_dir}/*/"].select { |e| File.directory? e }
-      gallery_dirs.reverse! # in order to sort by date desc
       gallery_dirs.each do |dir|
         generate_gallery_page(dir)
       end
@@ -96,7 +95,11 @@ module Jekyll
       photos.each do |photo|
         photo_data = photos_config.find { |e| e['filename'] == photo[:filename] } if photos_config
         photo_data ||= {}
-        photo_data['date'] = EXIFR::JPEG.new(photo[:file].path).date_time.strftime("%F %R")
+        begin
+          photo_data['date'] = EXIFR::JPEG.new(photo[:file].path).date_time.strftime("%F %R")
+        rescue
+          puts "#{photo[:file].path}: cannot load date"
+        end
 
         self.data['photos'] << Photo.new(@site, photo[:filename], self, photo_data)
       end
@@ -159,7 +162,7 @@ module Jekyll
       size_x = @site.config['thumbnail_x'] || 100
       size_y = @site.config['thumbnail_y'] || 100
 
-      full_thumbs_path = "#{@site.dest}/#{@thumbs_dir}/#{@gallery.gallery_dir_name}"
+      full_thumbs_path = "#{@thumbs_dir}/#{@gallery.gallery_dir_name}"
       FileUtils.mkdir_p(full_thumbs_path, :mode => 0755)
       if File.file?("#{full_thumbs_path}/#{self.filename}") == false or File.mtime("#{@gallery.gallery_dir}/#{self.filename}") > File.mtime("#{full_thumbs_path}/#{self.filename}")
         begin
