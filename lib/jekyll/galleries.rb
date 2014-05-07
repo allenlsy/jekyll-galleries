@@ -88,6 +88,11 @@ module Jekyll
       self.url = "/#{self.gen_dir}/#{self.gallery_dir_name}/index.html" # gallery page url
       self.data['url'] = URI.escape self.url
 
+      # generating gallery cover thumbnail
+      if self.data['thumbnail']
+        self.data['thumbnail'] = URI.escape("/#{self.gen_dir}/#{self.gallery_dir_name}/#{self.data['thumbnail']}")
+      end
+
       # For each photo, initial attributes are `filename` and `url`
       photos = Dir["#{self.gallery_dir}/*"].map { |e| { file: File.new(e), filename: File.basename(e), url: URI.escape("/#{self.gen_dir}/#{self.gallery_dir_name}/#{File.basename e}") } } # basic photos attributes
 
