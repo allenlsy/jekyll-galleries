@@ -1,6 +1,6 @@
 # jekyll-galleries
 
-By [allenlsy](mailto:cafe@allenlsy.com)
+By allenlsy
 
 __Jekyll-galleries__ is a Jekyll plugin used for generating photo galleries from image folders.
 
